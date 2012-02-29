@@ -25,7 +25,9 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
+import org.bouncycastle.util.encoders.Hex;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.HttpRequest;
 import org.springframework.stereotype.Component;
 
 import com.google.gson.Gson;
@@ -44,10 +46,36 @@ public class HelloWorldService {
 	}
 
 	@POST
-	@Produces("application/json")
-	public void setMessage(@FormParam("json-payload") String data) {
-		System.out.println("String is '" + data + "'");
-		System.out.println("Data is " + gson.fromJson(data, Object.class));
+	@Produces("application/text")
+	public String setMessage(byte[] byteData) {
+		String bytesRx = "Bytes received "+new String(Hex.encode(byteData));
+		System.out.println(bytesRx);
+		byte[] clearBytes = decrypt(byteData);
+		String clearTextMsg = "Unable to decrypt";
+		if (clearBytes != null) {
+			clearTextMsg = "Clear text: "+new String(clearBytes);
+		}
+		return bytesRx+"\r\n"+clearTextMsg;
 	}
+	
+	public byte[] decrypt(byte[] byteData) {
+		CryptoMan cryptoMan = CryptoMan.getInstance();
+		byte[] result =  null;
+		
+		//WDE algorithm
+		result = cryptoMan.decryptDES_CBC_WDE(byteData);
+		if (validateXML(result)) {
+			return result;
+		}
+		
+		//add other algorithms here
+		
+		return null;
+	}
+
+	public boolean validateXML(byte[] byteData) {
+		return false;
+	}
+	
 
 }
